@@ -1,8 +1,24 @@
 import csv
 import os
 import re
+import argparse
 
-folder = 'Homework #2'
+UNI = 'uni'
+
+
+parser = argparse.ArgumentParser(description='Process some integers.')
+parser.add_argument('spreadsheet', metavar='S', type=str,
+                           help='CSV from GDrive with grades')
+parser.add_argument('skip_lines', metavar='N', type=int,
+                           help='number of redundant rows in the spreadsheet')
+parser.add_argument('grades_dir', metavar='D', type=str,
+                           help='directory for all grades')
+parser.add_argument('comment_file', metavar='C', type=str,
+                           help='file with comment format')
+args = parser.parse_args()
+
+
+folder = args.grades_dir
 grade_file = '{}/{}'.format(folder, 'grades.csv')
 get_uni = re.compile('.*\((\w+)\)')
 
@@ -14,40 +30,14 @@ for s in os.listdir(folder):
         # uni --> folder_name
         directory[x.group(1)] = s
 
-csv_file = 'spreadsheet.csv'
-rows_to_skip = 2
-UNI = 'uni'
 
-comment_format = '''
-Homework #2
+with open(args.comment_file) as f:
+    comment_format = f.read().replace('\n', '<br>')
 
-Student: {uni}
-
-Grader: {grader}
-
-SignUp: {signup}/20
-{signup_comments}
-
-Login {login}/45
-{login_comments}
-
-Admin/List Users {admin}/20
-{admin_comments}
-
-AWS: {aws}/15
-{aws_comments}
-
-Extra Credit: {extracredit}/10
-{extracredit_comments}
-
-Total:
-    {total}/100
-'''.replace('\n', '<br>')
 
 grades = dict()
-
-with open(csv_file, 'rb') as f:
-    [f.readline() for _ in range(rows_to_skip)]
+with open(args.spreadsheet, 'rb') as f:
+    [f.readline() for _ in range(args.skip_lines)]
 
     grade_reader = csv.DictReader(f)
     for row in grade_reader:
